@@ -28,10 +28,15 @@ const getDetail = async (id) => {
     return rows[0]
 }
 
-const newCompetition = async (competitionData = {}) => {
-    const title = xss(competitionData.title)
-    const description = xss(competitionData.description)
-    const employer = competitionData.employer
+const newCompetition = async (Title, Description, Employer, Deadline, Budget) => {
+    // const title = xss(competitionData.title)
+    // const description = xss(competitionData.description)
+    // const employer = competitionData.employer
+    const title = Title
+    const description = Description
+    const employer = Employer
+    const deadline = Deadline
+    const budget = Budget // 预算 nnn
     // 获取时间
     const createTime = Date.now()
     // 转换时间格式
@@ -42,14 +47,12 @@ const newCompetition = async (competitionData = {}) => {
     //格式化后的时间
     timeFormat = year + month + day
     const sql = `
-        insert into competition (title, description, employer, createTime)
-        values ('${title}', '${description}', '${employer}', '${timeFormat}');
+        insert into competition (title, description, employer, createTime, deadline, budget)
+        values ('${title}', '${description}', '${employer}', '${timeFormat}', '${deadline}', '${budget}');
     `
 
     const insertData = await exec(sql)
-    return {
-        id: insertData.insertId
-    }
+    return insertData
 }
 
 const updateCompetition = async (id, competitionData = {}, employer) => {
@@ -96,9 +99,66 @@ class Competition {
 
   // 发布competition
   async newcompetition(ctx) {
-    const body = ctx.request.body // ctx.request.body为前端发送的数据
-    body.employer = ctx.session.username
-    const result = await newCompetition(body)
+    const { title, description, deadline, budget, skills, tags} = ctx.request.body // ctx.request.body为前端发送的数据
+
+    // 插入competition表
+    const result = await newCompetition(title, description, ctx.session.username, deadline, budget)
+
+    // 插入competition_skills表
+    if (skills.includes('HTML')) {
+      exec(`insert into competition_skills (id,skill) values ('${result.insertId}', 'HTML')`)
+    }
+    if (skills.includes('CSS')) {
+      exec(`insert into competition_skills (id,skill) values ('${result.insertId}', 'CSS')`)
+    }
+    if (skills.includes('网页设计')) {
+      exec(`insert into competition_skills (id,skill) values ('${result.insertId}', '网页设计')`)
+    }
+    if (skills.includes('Vue')) {
+      exec(`insert into competition_skills (id,skill) values ('${result.insertId}', 'Vue')`)
+    }
+    if (skills.includes('NodeJS')) {
+      exec(`insert into competition_skills (id,skill) values ('${result.insertId}', 'NodeJS')`)
+    }
+    if (skills.includes('Java')) {
+      exec(`insert into competition_skills (id,skill) values ('${result.insertId}', 'Java')`)
+    }
+    if (skills.includes('C++')) {
+      exec(`insert into competition_skills (id,skill) values ('${result.insertId}', 'C++')`)
+    }
+    if (skills.includes('JavaScript')) {
+      exec(`insert into competition_skills (id,skill) values ('${result.insertId}', 'JavaScript')`)
+    }
+    if (skills.includes('TypeScript')) {
+      exec(`insert into competition_skills (id,skill) values ('${result.insertId}', 'TypeScript')`)
+    }
+
+    // 插入competition_tags表
+    if (tags.includes('加精')) {
+      exec(`insert into competition_tags (id,tag) values ('${result.insertId}', '加精')`)
+    }
+    if (tags.includes('加急')) {
+      exec(`insert into competition_tags (id,tag) values ('${result.insertId}', '加急')`)
+    }
+    if (tags.includes('加保')) {
+      exec(`insert into competition_tags (id,tag) values ('${result.insertId}', '加保')`)
+    }
+    if (tags.includes('顶级竞赛')) {
+      exec(`insert into competition_tags (id,tag) values ('${result.insertId}', '顶级竞赛')`)
+    }
+    if (tags.includes('高亮')) {
+      exec(`insert into competition_tags (id,tag) values ('${result.insertId}', '高亮')`)
+    }
+    if (tags.includes('加封')) {
+      exec(`insert into competition_tags (id,tag) values ('${result.insertId}', '加封')`)
+    }
+    if (tags.includes('加密')) {
+      exec(`insert into competition_tags (id,tag) values ('${result.insertId}', '加密')`)
+    }
+    if (tags.includes('保密协议')) {
+      exec(`insert into competition_tags (id,tag) values ('${result.insertId}', '保密协议')`)
+    }
+
     ctx.body = new SuccessModel(result)
   }
 

@@ -1,30 +1,33 @@
 class BaseModel {
-    constructor(data, message) {
+    constructor(data, msg) {
+        this.data = {}
+        this.state = ''
+        this.msg = ''
         if (typeof data === 'string') {
-            this.message = data
+            this.msg = data
             data = null
-            message = null
+            msg = null
         }
         if (data) {
             this.data = data
         }
-        if (message) {
-            this.message = message
+        if (msg) {
+            this.msg = msg
         }
     }
 }
 
 class SuccessModel extends BaseModel {
-    constructor(data, message) {
-        super(data, message)
-        this.errno = 0
+    constructor(data, msg) {
+        super(data, msg)
+        this.state = 1
     }
 }
 
 class ErrorModel extends BaseModel {
-    constructor(data, message) {
-        super(data, message)
-        this.errno = -1
+    constructor(data, msg) {
+        super(data, msg)
+        this.state = 0
     }
 }
 

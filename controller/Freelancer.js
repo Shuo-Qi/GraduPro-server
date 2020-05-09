@@ -24,9 +24,16 @@ const getDetail = async (name) => {
     return rows[0]
 }
 
-const updateFreelancer = async (name, projectData = {}) => {
-    const competeRemain = xss(projectData.competeRemain)
-    const competeTime = xss(projectData.competeTime)
+const updateFreelancer = async (name, freelancerData = {}) => {
+    const competeRemain = xss(freelancerData.competeRemain)
+    const competeTime = xss(freelancerData.competeTime)
+    const profession = freelancerData.profession
+    const description = freelancerData.description
+    const reward = freelancerData.reward
+    const qualityNum = freelancerData.qualityNum
+    const communicaitonNum = freelancerData.communicaitonNum
+    const professionNum = freelancerData.professionNum
+    const againNum = freelancerData.againNum
     let sql = `
         update freelancer set 
     `
@@ -36,9 +43,296 @@ const updateFreelancer = async (name, projectData = {}) => {
     if(competeTime) {
       sql += `competeTime='${competeTime}',`
     }
+    if(profession) {
+      sql += `profession='${profession}',`
+    }
+    if(description) {
+      sql += `description='${description}',`
+    }
+    if(reward) {
+      sql += `reward='${reward}',`
+    }
+    if(qualityNum) {
+      sql += `qualityNum='${qualityNum}',`
+    }
+    if(communicaitonNum) {
+      sql += `communicaitonNum='${communicaitonNum}',`
+    }
+    if(professionNum) {
+      sql += `professionNum='${professionNum}',`
+    }
+    if(againNum) {
+      sql += `againNum='${againNum}',`
+    }
     // 删除最后的“,”
     sql = sql.substr(0, sql.length - 1)
     sql += ` where name='${name}';`
+
+    const updateData = await exec(sql)
+
+    if (updateData.affectedRows > 0) {
+        return true
+    }
+    return false
+}
+
+const updateSkills = async (name,skills) => {
+    // 获取 用户id
+    const sqlId = `select id from user where username='${name}';`
+    const res = await exec(sqlId)
+
+    // 插入 freelancer_skills 表
+    let sql = `insert into freelancer_skills (id,skill) values `
+    if (skills.includes('HTML')) {
+      sql += `('${res[0].id}','HTML'),`
+    }
+    if (skills.includes('CSS')) {
+      sql += `('${res[0].id}','CSS'),`
+    }
+    if (skills.includes('网页设计')) {
+      sql += `('${res[0].id}','网页设计'),`
+    }
+    if (skills.includes('Vue')) {
+      sql += `('${res[0].id}','Vue'),`
+    }
+    if (skills.includes('NodeJS')) {
+      sql += `('${res[0].id}','NodeJS'),`
+    }
+    if (skills.includes('Java')) {
+      sql += `('${res[0].id}','Java'),`
+    }
+    if (skills.includes('C++')) {
+      sql += `('${res[0].id}','C++'),`
+    }
+    if (skills.includes('JavaScript')) {
+      sql += `('${res[0].id}','JavaScript'),`
+    }
+    if (skills.includes('TypeScript')) {
+      sql += `('${res[0].id}','TypeScript'),`
+    }
+
+    // 删除最后的“,”
+    sql = sql.substr(0, sql.length - 1)
+    const updateData = await exec(sql)
+
+    if (updateData.affectedRows > 0) {
+        return true
+    }
+    return false
+}
+
+const updateWorkset = async (name, worksetData = [{},{},{},{}]) => {
+    const data1 = worksetData[0]
+    const data2 = worksetData[1]
+    const data3 = worksetData[2]
+    const data4 = worksetData[3]
+
+    // 获取 用户id
+    const sqlId = `select id from user where username='${name}';`
+    const res = await exec(sqlId)
+
+    // 插入freelancer_workset表
+    let sql = `insert into freelancer_workset (id,type,title,skills,src) values `
+    if (data1) {
+      sql += `('${res[0].id}','${data1.type}','${data1.title}','${data1.skills}','${data1.src}'),`
+    }
+    if (data2) {
+      sql += `('${res[0].id}','${data2.type}','${data2.title}','${data2.skills}','${data2.src}'),`
+    }
+    if (data3) {
+      sql += `('${res[0].id}','${data3.type}','${data3.title}','${data3.skills}','${data3.src}'),`
+    }
+    if (data4) {
+      sql += `('${res[0].id}','${data4.type}','${data4.title}','${data4.skills}','${data4.src}'),`
+    }
+
+    // 删除最后的“,”
+    sql = sql.substr(0, sql.length - 1)
+    const updateData = await exec(sql)
+
+    if (updateData.affectedRows > 0) {
+        return true
+    }
+    return false
+
+}
+
+const updateWorks = async (name, worksData = [{},{},{},{}]) => {
+  const data1 = worksData[0]
+  const data2 = worksData[1]
+  const data3 = worksData[2]
+  const data4 = worksData[3]
+
+  // 获取 用户id
+  const sqlId = `select id from user where username='${name}';`
+  const res = await exec(sqlId)
+
+  // 插入freelancer_works表
+  let sql = `insert into freelancer_works (id,position,company,timeStart,timeEnd,description) values `
+  if (data1) {
+    sql += `('${res[0].id}','${data1.position}','${data1.company}','${data1.timeStart}','${data1.timeEnd}','${data1.description}'),`
+  }
+  if (data2) {
+    sql += `('${res[0].id}','${data2.position}','${data2.company}','${data2.timeStart}','${data2.timeEnd}','${data2.description}'),`
+  }
+  if (data3) {
+    sql += `('${res[0].id}','${data3.position}','${data3.company}','${data3.timeStart}','${data3.timeEnd}','${data3.description}'),`
+  }
+  if (data4) {
+    sql += `('${res[0].id}','${data4.position}','${data4.company}','${data4.timeStart}','${data4.timeEnd}','${data4.description}'),`
+  }
+
+  // 删除最后的“,”
+  sql = sql.substr(0, sql.length - 1)
+  const updateData = await exec(sql)
+
+  if (updateData.affectedRows > 0) {
+      return true
+  }
+  return false
+
+}
+
+const updateEducation = async (name, educationData = [{},{},{},{}]) => {
+  const data1 = educationData[0]
+  const data2 = educationData[1]
+  const data3 = educationData[2]
+  const data4 = educationData[3]
+
+  // 获取 用户id
+  const sqlId = `select id from user where username='${name}';`
+  const res = await exec(sqlId)
+
+  // 插入freelancer_education表
+  let sql = `insert into freelancer_education (id,degree,college,timeStart,timeEnd) values `
+  if (data1) {
+    sql += `('${res[0].id}','${data1.degree}','${data1.college}','${data1.timeStart}','${data1.timeEnd}'),`
+  }
+  if (data2) {
+    sql += `('${res[0].id}','${data2.degree}','${data2.college}','${data2.timeStart}','${data2.timeEnd}'),`
+  }
+  if (data3) {
+    sql += `('${res[0].id}','${data3.degree}','${data3.college}','${data3.timeStart}','${data3.timeEnd}'),`
+  }
+  if (data4) {
+    sql += `('${res[0].id}','${data4.degree}','${data4.college}','${data4.timeStart}','${data4.timeEnd}'),`
+  }
+
+  // 删除最后的“,”
+  sql = sql.substr(0, sql.length - 1)
+  const updateData = await exec(sql)
+
+  if (updateData.affectedRows > 0) {
+      return true
+  }
+  return false
+
+}
+
+const updateReward = async (name, rewardData = [{},{},{},{}]) => {
+  const data1 = rewardData[0]
+  const data2 = rewardData[1]
+  const data3 = rewardData[2]
+  const data4 = rewardData[3]
+
+  // 获取 用户id
+  const sqlId = `select id from user where username='${name}';`
+  const res = await exec(sqlId)
+
+  // 插入freelancer_reward表
+  let sql = `insert into freelancer_reward (id,competition,organization,time,description) values `
+  if (data1) {
+    sql += `('${res[0].id}','${data1.competition}','${data1.organization}','${data1.time}','${data1.description}'),`
+  }
+  if (data2) {
+    sql += `('${res[0].id}','${data2.competition}','${data2.organization}','${data2.time}','${data2.description}'),`
+  }
+  if (data3) {
+    sql += `('${res[0].id}','${data3.competition}','${data3.organization}','${data3.time}','${data3.description}'),`
+  }
+  if (data4) {
+    sql += `('${res[0].id}','${data4.competition}','${data4.organization}','${data4.time}','${data4.description}'),`
+  }
+
+  // 删除最后的“,”
+  sql = sql.substr(0, sql.length - 1)
+  const updateData = await exec(sql)
+
+  if (updateData.affectedRows > 0) {
+      return true
+  }
+  return false
+
+}
+
+const Collect = async (name, collectData = {}) => {
+    const item_id = collectData.item_id
+
+    // 获取 用户id
+    const sqlId = `select id from user where username='${name}';`
+    const res = await exec(sqlId)
+
+    // 获取 item_title
+    const sqlItem_title = `select title from project where id='${item_id}';`
+    const item_title = await exec(sqlItem_title)
+
+    const sql = `insert into freelancer_collection (id,item_id,item_title) values ('${res[0].id}','${item_id}','${item_title[0].title}');`
+    const updateData = await exec(sql)
+
+    if (updateData.affectedRows > 0) {
+        return true
+    }
+    return false
+}
+
+const unCollect = async (name, uncollectData = {}) => {
+  const item_id = uncollectData.item_id
+
+  // 获取 用户id
+  const sqlId = `select id from user where username='${name}';`
+  const res = await exec(sqlId)
+
+  const sql = `delete from freelancer_collection where id='${res[0].id}' and item_id='${item_id}';`
+  const updateData = await exec(sql)
+
+  if (updateData.affectedRows > 0) {
+      return true
+  }
+  return false
+}
+
+const getHourlyProject = async (name, projectData = {}) => {
+
+    const reward = projectData.reward
+    const deadline = projectData.deadline
+    const hours = projectData.hours
+    const note = projectData.note
+    const projectId = projectData.projectId
+    const top = projectData.top
+    // 获取 用户id
+    const sqlId = `select id from user where username='${name}';`
+    const res1 = await exec(sqlId)
+
+    // 获取 project title,发布者
+    const sqlTitle = `select title,employer from project where id='${projectId}';`
+    const res2 = await exec(sqlTitle)
+
+    // 获取 当前时间
+    const createTime = Date.now()
+    // 转换时间格式
+    var date = new Date(createTime)
+    year = date.getFullYear() + '-'
+    month = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-'
+    day =  (date.getDate() < 10 ? '0'+ date.getDate() : date.getDate())
+    //格式化后的时间
+    timeFormat = year + month + day
+
+    // 计算 deposite
+    const deposite = 0.5 * hours
+
+    sql = `insert into project_freelancer
+ (freelancerName,freelancerId,projectTitle,projectId,time,employer,reward,deadline,note,deposite,top) values
+ ('${name}','${res1[0].id}','${res2[0].title}','${projectId}','${timeFormat}','${res2[0].employer}','${reward}','${deadline}','${note}','${deposite}','${top}');`
     
     const updateData = await exec(sql)
 
@@ -48,7 +342,143 @@ const updateFreelancer = async (name, projectData = {}) => {
     return false
 }
 
-    
+const getFixedProject = async (name, projectData = {}) => {
+
+    const reward = projectData.reward
+    const deadline = projectData.deadline
+    const note = projectData.note
+    const projectId = projectData.projectId
+    const top = projectData.top
+    // 获取 用户id
+    const sqlId = `select id from user where username='${name}';`
+    const res1 = await exec(sqlId)
+
+    // 获取 project title,发布者
+    const sqlTitle = `select title,employer from project where id='${projectId}';`
+    const res2 = await exec(sqlTitle)
+
+    // 获取 当前时间
+    const createTime = Date.now()
+    // 转换时间格式
+    var date = new Date(createTime)
+    year = date.getFullYear() + '-'
+    month = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-'
+    day =  (date.getDate() < 10 ? '0'+ date.getDate() : date.getDate())
+    //格式化后的时间
+    timeFormat = year + month + day
+
+    // 计算 deposite
+    const deposite = reward * 0.1
+
+  sql = `insert into project_freelancer
+ (freelancerName,freelancerId,projectTitle,projectId,time,employer,reward,deadline,note,deposite,top) values
+ ('${name}','${res1[0].id}','${res2[0].title}','${projectId}','${timeFormat}','${res2[0].employer}','${reward}','${deadline}','${note}','${deposite}','${top}');`
+
+    const updateData = await exec(sql)
+
+      if (updateData.affectedRows > 0) {
+          return true
+      }
+      return false
+}
+
+const getCompetition = async (name, competitionData = {}) => {
+
+  const reward = competitionData.reward
+  const note = competitionData.note
+  const competitionId = competitionData.competitionId
+  const img = competitionData.img
+  const licenseName = competitionData.licenseName
+  const licenseUrl = competitionData.licenseUrl
+  const highlight = competitionData.highlight
+  const enseal = competitionData.enseal
+  // 获取 用户id
+  const sqlId = `select id from user where username='${name}';`
+  const res1 = await exec(sqlId)
+
+  // 获取 competition title,发布者
+  const sqlTitle = `select title,employer from competition where id='${competitionId}';`
+  const res2 = await exec(sqlTitle)
+
+  // 获取 当前时间
+  const createTime = Date.now()
+  // 转换时间格式
+  var date = new Date(createTime)
+  year = date.getFullYear() + '-'
+  month = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-'
+  day =  (date.getDate() < 10 ? '0'+ date.getDate() : date.getDate())
+  //格式化后的时间
+  timeFormat = year + month + day
+
+sql = `insert into competition_freelancer
+(freelancerName,freelancerId,competitionTitle,competitionId,time,employer,reward,note,img,licenseName,licenseUrl,highlight,enseal) values
+('${name}','${res1[0].id}','${res2[0].title}','${competitionId}','${timeFormat}','${res2[0].employer}','${reward}','${note}','${img}','${licenseName}','${licenseUrl}','${highlight}','${enseal}');`
+
+  const updateData = await exec(sql)
+
+    if (updateData.affectedRows > 0) {
+        return true
+    }
+    return false
+}
+
+const getSkills = async (id) => {
+  sql = `select skill from freelancer_skills where id='${id}'`
+  const res = await exec(sql)
+
+  // 转换为数组形式
+  let skills = []
+  for (let i=0;i<res.length;i++) {
+      skills.push(res[i].skill)
+  }
+  
+  return skills
+}
+
+const getCollection = async (id) => {
+  sql = `select * from project where id in (select item_id from freelancer_collection where id='${id}');`
+  const res = await exec(sql)
+  return res
+}
+
+const getWorkset = async (id) => {
+  sql = `select * from freelancer_workset where id='${id}';`
+  const res = await exec(sql)
+  return res
+}
+
+const getWorks = async (id) => {
+  sql = `select * from freelancer_works where id='${id}';`
+  const res = await exec(sql)
+  return res
+}
+
+const getEducation = async (id) => {
+  sql = `select * from freelancer_education where id='${id}';`
+  const res = await exec(sql)
+  return res
+}
+
+const getReward = async (id) => {
+  sql = `select * from freelancer_reward where id='${id}';`
+  const res = await exec(sql)
+  return res
+}
+
+const getProjects = async (id) => {
+  sql = `select * from project_freelancer where freelancerId='${id}';`
+  const res = await exec(sql)
+  return res
+}
+
+const getCompetitions = async (id) => {
+  sql = `select * from competition_freelancer where freelancerId='${id}';`
+  const res = await exec(sql)
+  return res
+}
+
+
+
 class Freelancer {
 
   // 获取freelancer列表
@@ -76,6 +506,201 @@ class Freelancer {
     } else {
       ctx.body = new ErrorModel('更新freelancer失败')
     }
+  }
+
+  // 本人设置skills
+  async updateskills(ctx) {
+    const name = ctx.session.username // 本人更新
+    const { skills }= ctx.request.body
+    const val = await updateSkills(name, skills)
+    if (val) {
+      ctx.body = new SuccessModel()
+    } else {
+      ctx.body = new ErrorModel('设置skills失败')
+    }
+  }
+
+  // 本人设置作品集
+  async updateworkset(ctx) {
+    const name = ctx.session.username // 本人更新
+    const val = await updateWorkset(name, ctx.request.body)
+    if (val) {
+      ctx.body = new SuccessModel()
+    } else {
+      ctx.body = new ErrorModel('设置作品集失败')
+    }
+  }
+
+  // 本人设置工作经历
+  async updateworks(ctx) {
+    const name = ctx.session.username // 本人更新
+    const val = await updateWorks(name, ctx.request.body)
+    if (val) {
+      ctx.body = new SuccessModel()
+    } else {
+      ctx.body = new ErrorModel('设置工作经历失败')
+    }
+  }
+
+  // 本人设置教育经历
+  async updateeducation(ctx) {
+    const name = ctx.session.username // 本人更新
+    const val = await updateEducation(name, ctx.request.body)
+    if (val) {
+      ctx.body = new SuccessModel()
+    } else {
+      ctx.body = new ErrorModel('设置教育经历失败')
+    }
+  }
+
+  // 本人设置获奖经历
+  async updatereward(ctx) {
+    const name = ctx.session.username // 本人更新
+    const val = await updateReward(name, ctx.request.body)
+    if (val) {
+      ctx.body = new SuccessModel()
+    } else {
+      ctx.body = new ErrorModel('设置获奖经历失败')
+    }
+  }
+
+  // 收藏项目
+  async collect(ctx) {
+    const name = ctx.session.username // 本人更新
+    const val = await Collect(name, ctx.request.body)
+    if (val) {
+      ctx.body = new SuccessModel()
+    } else {
+      ctx.body = new ErrorModel('收藏失败')
+    }
+  }
+
+  // 取消收藏
+  async uncollect(ctx) {
+    const name = ctx.session.username // 本人更新
+    const val = await unCollect(name, ctx.request.body)
+    if (val) {
+      ctx.body = new SuccessModel()
+    } else {
+      ctx.body = new ErrorModel('取消收藏失败')
+    }
+  }
+
+  // 接取 竞标projectd
+  // async getproject(ctx) {
+  //   const name = ctx.session.username // 本人更新
+  //   ctx.request.body.projectId = ctx.query.id
+  //   // 获得project的类型
+  //   const sql = `select rewardType from project where id='${ctx.request.body.projectId}';`
+  //   const res = await exec(sql)
+
+  //   // 0:fiexed 1:hourly
+  //   if (res[0].rewardType === 0) {
+  //       const val = await getFixedProject(name, ctx.request.body)
+  //   }
+  //   else {
+  //       const val = await getHourlyProject(name, ctx.request.body)
+  //   }
+    
+  //   if (val) {
+  //     ctx.body = new SuccessModel()
+  //   } else {
+  //     ctx.body = new ErrorModel('竞标失败')
+  //   }
+  // }
+
+  // 接取 时薪项目
+  async gethourlyproject(ctx) {
+    const name = ctx.session.username // 本人更新
+    ctx.request.body.projectId = ctx.query.id // url中输入项目id
+    const val = await getHourlyProject(name, ctx.request.body)
+    
+    if (val) {
+      ctx.body = new SuccessModel()
+    } else {
+      ctx.body = new ErrorModel('竞标时薪项目失败')
+    }
+  }
+
+  // 接取 固定价格项目
+  async getfixedproject(ctx) {
+    const name = ctx.session.username // 本人更新
+    ctx.request.body.projectId = ctx.query.id // url中输入项目id
+    const val = await getFixedProject(name, ctx.request.body)
+    
+    if (val) {
+      ctx.body = new SuccessModel()
+    } else {
+      ctx.body = new ErrorModel('竞标固定价格项目失败')
+    }
+  }
+
+  // 接取 竞赛competition
+  async getcompetition(ctx) {
+    const name = ctx.session.username // 本人更新
+    ctx.request.body.competitionId = ctx.query.id // url中输入竞赛id
+    const val = await getCompetition(name, ctx.request.body)
+    
+    if (val) {
+      ctx.body = new SuccessModel()
+    } else {
+      ctx.body = new ErrorModel('提交竞赛作品失败')
+    }
+  }
+
+  // 查看 skills
+  async getskills(ctx) {
+    const result = await getSkills(ctx.session.id) // 本人
+    // const result = await getSkills(ctx.query.id)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看 收藏的项目
+  async getcollection(ctx) {
+    const result = await getCollection(ctx.session.id) // 本人
+    // const result = await getCollection(ctx.query.id)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看 作品集
+  async getworkset(ctx) {
+    const result = await getWorkset(ctx.session.id) // 本人
+    // const result = await getCollection(ctx.query.id)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看 工作经历
+  async getworks(ctx) {
+    const result = await getWorks(ctx.session.id) // 本人
+    // const result = await getCollection(ctx.query.id)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看 教育经历
+  async geteducation(ctx) {
+    const result = await getEducation(ctx.session.id) // 本人
+    // const result = await getCollection(ctx.query.id)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看 获奖经历
+  async getreward(ctx) {
+    const result = await getReward(ctx.session.id) // 本人
+    // const result = await getCollection(ctx.query.id)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看 竞标的项目
+  async getprojects(ctx) {
+    const result = await getProjects(ctx.session.id) // 本人
+    // const result = await getCollection(ctx.query.id)
+    ctx.body = new SuccessModel(result)
+  }
+  // 查看 竞标的竞赛
+  async getcompetitions(ctx) {
+    const result = await getCompetitions(ctx.session.id) // 本人
+    // const result = await getCollection(ctx.query.id)
+    ctx.body = new SuccessModel(result)
   }
 
 }

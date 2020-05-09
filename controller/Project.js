@@ -28,10 +28,14 @@ const getDetail = async (id) => {
     return rows[0]
 }
 
-const newProject = async (projectData = {}) => {
-    const title = xss(projectData.title)
-    const description = xss(projectData.description)
-    const employer = projectData.employer
+const newProject = async (Title, Description, Employer, Deadline, RewardType, Budget) => {
+    const title = Title
+    const description = Description
+    const employer = Employer
+    const deadline = Deadline
+    const rewardType = RewardType
+    const budget = Budget // 预算 nnn--nnns
+
     // 获取时间
     const createTime = Date.now()
     // 转换时间格式
@@ -42,14 +46,12 @@ const newProject = async (projectData = {}) => {
     //格式化后的时间
     timeFormat = year + month + day
     const sql = `
-        insert into project (title, description, employer, createTime)
-        values ('${title}', '${description}', '${employer}', '${timeFormat}');
+        insert into project (title, description, employer, createTime, deadline, rewardType, budget)
+        values ('${title}', '${description}', '${employer}', '${timeFormat}', '${deadline}', '${rewardType}', '${budget}');
     `
 
     const insertData = await exec(sql)
-    return {
-        id: insertData.insertId
-    }
+    return insertData
 }
 
 const updateProject = async (id, projectData = {}, employer) => {
@@ -75,14 +77,38 @@ const delProject = async (id, employer) => {
     }
     return false
 }
+
+const getSkills = async (id) => {
+    sql = `select skill from project_skills where id='${id}'`
+    const res = await exec(sql)
+
+    // 转换为数组形式
+    let skills = []
+    for (let i=0;i<res.length;i++) {
+        skills.push(res[i].skill)
+    }
+    
+    return skills
+}
+
+const getTags = async (id) => {
+  sql = `select tag from project_tags where id='${id}'`
+  const res = await exec(sql)
+
+  // 转换为数组形式
+  let tags = []
+  for (let i=0;i<res.length;i++) {
+      tags.push(res[i].tag)
+  }
+  
+  return tags
+}
     
 class Project {
 
   // 获取project列表
   async getproject(ctx) {
-    // const method = ctx.method
     const query = ctx.query
-    // const id = query.id
     let employer = query.employer || ''
     const keyword = query.keyword || ''
     const order = query.order || ''
@@ -98,9 +124,58 @@ class Project {
 
   // 发布project
   async newproject(ctx) {
-    const body = ctx.request.body // ctx.request.body为前端发送的数据
-    body.employer = ctx.session.username
-    const result = await newProject(body)
+    // const body = ctx.request.body // ctx.request.body为前端发送的数据
+    const { title, description, deadline, rewardType, budget, skills, tags} = ctx.request.body // ctx.request.body为前端发送的数据
+
+    // 插入project表
+    const result = await newProject(title, description, ctx.session.username, deadline, rewardType, budget)
+
+    // 插入project_skills表
+    if (skills.includes('HTML')) {
+      exec(`insert into project_skills (id,skill) values ('${result.insertId}', 'HTML')`)
+    }
+    if (skills.includes('CSS')) {
+      exec(`insert into project_skills (id,skill) values ('${result.insertId}', 'CSS')`)
+    }
+    if (skills.includes('网页设计')) {
+      exec(`insert into project_skills (id,skill) values ('${result.insertId}', '网页设计')`)
+    }
+    if (skills.includes('Vue')) {
+      exec(`insert into project_skills (id,skill) values ('${result.insertId}', 'Vue')`)
+    }
+    if (skills.includes('NodeJS')) {
+      exec(`insert into project_skills (id,skill) values ('${result.insertId}', 'NodeJS')`)
+    }
+    if (skills.includes('Java')) {
+      exec(`insert into project_skills (id,skill) values ('${result.insertId}', 'Java')`)
+    }
+    if (skills.includes('C++')) {
+      exec(`insert into project_skills (id,skill) values ('${result.insertId}', 'C++')`)
+    }
+    if (skills.includes('JavaScript')) {
+      exec(`insert into project_skills (id,skill) values ('${result.insertId}', 'JavaScript')`)
+    }
+    if (skills.includes('TypeScript')) {
+      exec(`insert into project_skills (id,skill) values ('${result.insertId}', 'TypeScript')`)
+    }
+
+    // 插入project_tags表
+    if (tags.includes('招聘专家')) {
+      exec(`insert into project_tags (id,tag) values ('${result.insertId}', '招聘专家')`)
+    }
+    if (tags.includes('加急')) {
+      exec(`insert into project_tags (id,tag) values ('${result.insertId}', '加急')`)
+    }
+    if (tags.includes('加精')) {
+      exec(`insert into project_tags (id,tag) values ('${result.insertId}', '加精')`)
+    }
+    if (tags.includes('加密')) {
+      exec(`insert into project_tags (id,tag) values ('${result.insertId}', '加密')`)
+    }
+    if (tags.includes('保密协议')) {
+      exec(`insert into project_tags (id,tag) values ('${result.insertId}', '保密协议')`)
+    }
+
     ctx.body = new SuccessModel(result)
   }
 
@@ -115,7 +190,7 @@ class Project {
     }
   }
 
-  //
+  // 删除项目
   async delproject(ctx) {
     
     const employer = ctx.session.username
@@ -125,6 +200,18 @@ class Project {
     } else {
       ctx.body = new ErrorModel('删除project失败')
     }
+  }
+
+  // 查看项目skills
+  async getskills(ctx) {
+    const result = await getSkills(ctx.query.id)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看项目tags
+  async gettags(ctx) {
+    const result = await getTags(ctx.query.id)
+    ctx.body = new SuccessModel(result)
   }
 }
 
