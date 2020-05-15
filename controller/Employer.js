@@ -73,7 +73,7 @@ const offerProject = async (projectId, freelancerId, employer) => {
     // 验证是否此人竞标了此项目
     const verify = await exec(`select * from project_freelancer where projectId='${projectId}' and freelancerId='${freelancerId}';`)
 
-    if (verify.length !== 0) {
+    if (verify.length != 0) {
         const sql = `update project set succFreelancer='${name[0].name}' where id='${projectId}' and employer='${employer}';`
         const updateData = await exec(sql)
 
@@ -94,8 +94,8 @@ const offerCompetition = async (competitionId, freelancerId, employer) => {
     // 验证是否此人竞标了此项目
     const verify = await exec(`select * from competition_freelancer where competitionId='${competitionId}' and freelancerId='${freelancerId}';`)
 
-    if (verify.length !== 0) {
-        const sql = `update competition set succFreelancer='${name[0].name}' where id='${competitionId}' and employer='${employer}';`
+    if (verify.length != 0) {
+        const sql = `update competition set succFreelancer='${name[0].name}',succWork='${verify[0].NO}' where id='${competitionId}' and employer='${employer}';`
         const updateData = await exec(sql)
         if (updateData.affectedRows > 0) {
             return true
@@ -103,6 +103,90 @@ const offerCompetition = async (competitionId, freelancerId, employer) => {
         return false
     }
     return false
+}
+
+const getTopProjects = async (name) => {
+  sql = `select * from project where employer='${name}' limit 4;`
+  const res = await exec(sql)
+  return res
+}
+
+const getProjectInfo = async (projectId,freelancerName) => {
+  const sql = `select * from project_freelancer where freelancerName='${freelancerName}' and projectId='${projectId}'`
+  const rows = await exec(sql)
+  return rows[0]
+}
+
+const getCompetitionInfo = async (competitionId,freelancerName) => {
+  const sql = `select * from competition_freelancer where freelancerName='${freelancerName}' and competitionId='${competitionId}'`
+  const rows = await exec(sql)
+  return rows[0]
+}
+
+const getCompetition = async (employer, keyword, order,status,succFreelancer) => {
+  let sql = `select * from competition where 1=1 `
+  // 查某个雇主的竞赛
+  if (employer) {
+      sql += `and employer='${employer}' `
+  }
+  // 搜索关键字匹配title
+  if (keyword) {
+    sql += `and title like '%${keyword}%' `
+  }
+  // 状态
+  if (status) {
+    sql += `and status='${status}' `
+  }
+  // 是否已悬赏
+  if (succFreelancer) {
+    // 0对应-，表示没有succFreelancer；1对应有
+    if (succFreelancer == 0) {
+      sql += `and succFreelancer='-' `
+    }
+    else {
+      sql += `and succFreelancer<>'-' `
+    }
+  }
+  // 排序
+  if (order) {
+    sql += `order by '${order}' desc;`
+}
+
+  // 返回 promise
+  return await exec(sql)
+}
+
+const getProject = async (employer, keyword, order,status,succFreelancer) => {
+  let sql = `select * from project where 1=1 `
+  // 查某个雇主的项目
+  if (employer) {
+      sql += `and employer='${employer}' `
+  }
+  // 搜索关键字匹配title
+  if (keyword) {
+    sql += `and title like '%${keyword}%' `
+  }
+  // 状态
+  if (status) {
+    sql += `and status='${status}' `
+  }
+  // 是否已悬赏
+  if (succFreelancer) {
+    // 0对应-，表示没有succFreelancer；1对应有
+    if (succFreelancer == 0) {
+      sql += `and succFreelancer='-' `
+    }
+    else {
+      sql += `and succFreelancer<>'-' `
+    }
+  }
+  // 排序
+  if (order) {
+    sql += `order by '${order}' desc;`
+}
+
+  // 返回 promise
+  return await exec(sql)
 }
 
     
@@ -119,7 +203,14 @@ class Employer {
 
   // 获取employer详情
   async getdetail(ctx) {
-    const result = await getDetail(ctx.query.name)
+    let result
+    if (ctx.query.name) {
+      result = await getDetail(ctx.query.name)
+    }
+    else {
+      result = await getDetail(ctx.session.username)
+    }
+    
     ctx.body = new SuccessModel(result)
   }
 
@@ -156,6 +247,49 @@ class Employer {
       ctx.body = new ErrorModel('competition悬赏失败')
     }
   }
+
+   // 查看最近的项目
+   async gettopprojects(ctx) {
+    const result = await getTopProjects(ctx.session.username) // 本人
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看已悬赏项目的信息
+  async getprojectinfo(ctx) {
+    const result = await getProjectInfo(ctx.query.projectId,ctx.query.freelancerName)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看已悬赏竞赛的信息
+  async getcompetitioninfo(ctx) {
+    const result = await getCompetitionInfo(ctx.query.competitionId,ctx.query.freelancerName)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // employer本人获取competition列表
+  async getcompetition(ctx) {
+    const query = ctx.query
+    let employer = query.employer || ''
+    const keyword = query.keyword || ''
+    const order = query.order || ''
+    const status = query.status || ''
+    const succFreelancer = query.succFreelancer || ''
+    const result = await getCompetition(ctx.session.username, keyword, order,status,succFreelancer)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // employer本人获取project列表
+  async getproject(ctx) {
+    const query = ctx.query
+    let employer = query.employer || ''
+    const keyword = query.keyword || ''
+    const order = query.order || ''
+    const status = query.status || ''
+    const succFreelancer = query.succFreelancer || ''
+    const result = await getProject(ctx.session.username, keyword, order,status,succFreelancer)
+    ctx.body = new SuccessModel(result)
+  }
 }
+
 
 module.exports = new Employer();

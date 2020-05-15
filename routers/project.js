@@ -10,5 +10,6 @@ router.post('/updateproject', loginCheck, project.updateproject);
 router.post('/delproject', loginCheck, project.delproject);
 router.get('/getskills', loginCheck, project.getskills);
 router.get('/gettags', loginCheck, project.gettags);
+router.get('/getprojectpast', loginCheck, project.getprojectpast);
 
 module.exports = router;

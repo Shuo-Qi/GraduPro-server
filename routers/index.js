@@ -7,10 +7,10 @@ const employer = require('./employer')
 
 let router = new Router()
 
-router.use('/user', user.routes(), user.allowedMethods())
-router.use('/project', project.routes(), project.allowedMethods())
-router.use('/competition', competition.routes(), competition.allowedMethods())
-router.use('/freelancer', freelancer.routes(), freelancer.allowedMethods())
-router.use('/employer', employer.routes(), employer.allowedMethods())
+router.use('/api/user', user.routes(), user.allowedMethods())
+router.use('/api/project', project.routes(), project.allowedMethods())
+router.use('/api/competition', competition.routes(), competition.allowedMethods())
+router.use('/api/freelancer', freelancer.routes(), freelancer.allowedMethods())
+router.use('/api/employer', employer.routes(), employer.allowedMethods())
 
 module.exports = router

@@ -21,6 +21,11 @@ const getProject = async (employer, keyword, order) => {
     // 返回 promise
     return await exec(sql)
 }
+
+const getProjectPast = async (employer) => {
+    const sql = `select * from project where employer='${employer}' and status<>0`
+    return await exec(sql)
+}
  
 const getDetail = async (id) => {
     const sql = `select * from project where id='${id}'`
@@ -46,8 +51,8 @@ const newProject = async (Title, Description, Employer, Deadline, RewardType, Bu
     //格式化后的时间
     timeFormat = year + month + day
     const sql = `
-        insert into project (title, description, employer, createTime, deadline, rewardType, budget)
-        values ('${title}', '${description}', '${employer}', '${timeFormat}', '${deadline}', '${rewardType}', '${budget}');
+        insert into project (title, description, employer, createTime, deadline, rewardType, budget, succFreelancer)
+        values ('${title}', '${description}', '${employer}', '${timeFormat}', '${deadline}', '${rewardType}', '${budget}', '-');
     `
 
     const insertData = await exec(sql)
@@ -112,7 +117,9 @@ class Project {
     let employer = query.employer || ''
     const keyword = query.keyword || ''
     const order = query.order || ''
+
     const result = await getProject(employer, keyword, order)
+    
     ctx.body = new SuccessModel(result)
   }
 
@@ -213,6 +220,13 @@ class Project {
     const result = await getTags(ctx.query.id)
     ctx.body = new SuccessModel(result)
   }
+
+  // 查看employer过去的项目（status=1或2或3）
+  async getprojectpast(ctx) {
+    const result = await getProjectPast(ctx.session.username)
+    ctx.body = new SuccessModel(result)
+  }
+
 }
 
 module.exports = new Project();

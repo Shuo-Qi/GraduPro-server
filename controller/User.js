@@ -1,17 +1,33 @@
-const {exec} = require('../db/mysql')
+const {exec, escape} = require('../db/mysql')
 const xss = require('xss')
 const { ErrorModel, SuccessModel } = require('../model/resModel')
 
 const login = async (username, password) => {
+    username = escape(username)
+    password = escape(password)
+
     const sql = `
-        select id, username from user where username='${username}' and password='${password}'
+        select id, username, role from user where username=${username} and password=${password}
     `
     const updateStatus = `
-        update user set status=0 where username='${username}' and password='${password}'
+        update user set status=0 where username=${username} and password=${password}
     `
     const rows = await exec(sql)
     exec(updateStatus)
     return rows[0] || {}
+}
+
+const resetPassword = async (telephone, password) => {
+  const newpassword = xss(password)
+  const sql = `
+      update user set password='${newpassword}' where telephone='${telephone}';
+  `
+  const updateData = await exec(sql)
+
+    if (updateData.affectedRows > 0) {
+        return true
+    }
+    return false
 }
 
 const updateUser = async (username, userData = {}) => {
@@ -84,7 +100,18 @@ const getInterest = async (id) => {
     return res
 }
 
+// 用户信息
+const getDetail = async (name) => {
+  const sql = `select * from user where username='${name}'`
+  const rows = await exec(sql)
+  return rows[0]
+}
 
+const getUserInfo = async (id) => {
+  const sql = `select * from user where id='${id}'`
+  const rows = await exec(sql)
+  return rows[0]
+}
 class User {
  
     // 登陆
@@ -96,7 +123,7 @@ class User {
           ctx.session.username = data.username
           ctx.session.id = data.id
           // ctx.body = new SuccessModel(ctx.session, '登陆成功')
-          ctx.body = new SuccessModel(ctx.session.username)
+          ctx.body = new SuccessModel(data) // 返回角色，用于选择页面跳转
           return
         }
         ctx.body = new ErrorModel('登陆失败')
@@ -136,7 +163,7 @@ class User {
               insert into employer (id, name) values ('${data.insertId}', '${username}');
           `
 
-          if(role === 1) {
+          if(role == 1) {
               const insertData = await exec(insertFreelancer)
               if (insertData.affectedRows > 0) {
                   ctx.body = new SuccessModel('freelancer注册成功')
@@ -189,10 +216,39 @@ class User {
       }
     }
 
-    // 查看 关注
+    // 查看 关注的人的信息
     async getinterest(ctx) {
       const result = await getInterest(ctx.session.id)
       ctx.body = new SuccessModel(result)
     }
+
+    // 忘记密码
+    async resetpassword(ctx) {
+      const telephone = ctx.request.body.telephone
+      const password = ctx.request.body.password
+      const val = await resetPassword(telephone, password)
+      if (val) {
+        ctx.body = new SuccessModel()
+      } else {
+        ctx.body = new ErrorModel('重置密码失败')
+      }
+    }
+
+    // 获取个人详情
+    async getdetail(ctx) {
+      const result = await getDetail(ctx.session.username)
+      // console.log(ctx.session.username)
+      // console.log(result)
+      ctx.body = new SuccessModel(result)
+    }
+
+    // 获取他人信息
+    async getuserinfo(ctx) {
+      const result = await getUserInfo(ctx.query.id)
+      // console.log(ctx.session.username)
+      // console.log(result)
+      ctx.body = new SuccessModel(result)
+    }
+
 }
 module.exports = new User();

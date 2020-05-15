@@ -21,6 +21,11 @@ const getCompetition = async (employer, keyword, order) => {
     // 返回 promise
     return await exec(sql)
 }
+
+const getCompetitionPast = async (employer) => {
+  const sql = `select * from competition where employer='${employer}' and status<>0`
+  return await exec(sql)
+}
  
 const getDetail = async (id) => {
     const sql = `select * from competition where id='${id}'`
@@ -47,8 +52,8 @@ const newCompetition = async (Title, Description, Employer, Deadline, Budget) =>
     //格式化后的时间
     timeFormat = year + month + day
     const sql = `
-        insert into competition (title, description, employer, createTime, deadline, budget)
-        values ('${title}', '${description}', '${employer}', '${timeFormat}', '${deadline}', '${budget}');
+        insert into competition (title, description, employer, createTime, deadline, budget,succFreelancer)
+        values ('${title}', '${description}', '${employer}', '${timeFormat}', '${deadline}', '${budget}', '-');
     `
 
     const insertData = await exec(sql)
@@ -78,6 +83,33 @@ const delCompetition = async (id, employer) => {
     }
     return false
 }
+
+
+const getSkills = async (id) => {
+      sql = `select skill from competition_skills where id='${id}'`
+      const res = await exec(sql)
+
+      // 转换为数组形式
+      let skills = []
+      for (let i=0;i<res.length;i++) {
+          skills.push(res[i].skill)
+      }
+      
+      return skills
+}
+
+const getTags = async (id) => {
+    sql = `select tag from competition_tags where id='${id}'`
+    const res = await exec(sql)
+
+    // 转换为数组形式
+    let tags = []
+    for (let i=0;i<res.length;i++) {
+        tags.push(res[i].tag)
+    }
+
+    return tags
+}
     
 class Competition {
 
@@ -88,6 +120,7 @@ class Competition {
     const keyword = query.keyword || ''
     const order = query.order || ''
     const result = await getCompetition(employer, keyword, order)
+  
     ctx.body = new SuccessModel(result)
   }
 
@@ -183,6 +216,24 @@ class Competition {
     } else {
       ctx.body = new ErrorModel('删除competition失败')
     }
+  }
+
+  // 查看skills
+  async getskills(ctx) {
+    const result = await getSkills(ctx.query.id)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看tags
+  async gettags(ctx) {
+    const result = await getTags(ctx.query.id)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看employer过去的竞标（status=1或2或3）
+  async getcompetitionpast(ctx) {
+    const result = await getCompetitionPast(ctx.session.username)
+    ctx.body = new SuccessModel(result)
   }
 }
 

@@ -31,7 +31,7 @@ const updateFreelancer = async (name, freelancerData = {}) => {
     const description = freelancerData.description
     const reward = freelancerData.reward
     const qualityNum = freelancerData.qualityNum
-    const communicaitonNum = freelancerData.communicaitonNum
+    const communicationNum = freelancerData.communicationNum
     const professionNum = freelancerData.professionNum
     const againNum = freelancerData.againNum
     let sql = `
@@ -55,8 +55,8 @@ const updateFreelancer = async (name, freelancerData = {}) => {
     if(qualityNum) {
       sql += `qualityNum='${qualityNum}',`
     }
-    if(communicaitonNum) {
-      sql += `communicaitonNum='${communicaitonNum}',`
+    if(communicationNum) {
+      sql += `communicationNum='${communicationNum}',`
     }
     if(professionNum) {
       sql += `professionNum='${professionNum}',`
@@ -265,7 +265,7 @@ const updateReward = async (name, rewardData = [{},{},{},{}]) => {
 
 }
 
-const Collect = async (name, collectData = {}) => {
+const CollectProject = async (name, collectData = {}) => {
     const item_id = collectData.item_id
 
     // 获取 用户id
@@ -276,7 +276,7 @@ const Collect = async (name, collectData = {}) => {
     const sqlItem_title = `select title from project where id='${item_id}';`
     const item_title = await exec(sqlItem_title)
 
-    const sql = `insert into freelancer_collection (id,item_id,item_title) values ('${res[0].id}','${item_id}','${item_title[0].title}');`
+    const sql = `insert into freelancer_collection (id,item_id,item_title,type) values ('${res[0].id}','${item_id}','${item_title[0].title}','project');`
     const updateData = await exec(sql)
 
     if (updateData.affectedRows > 0) {
@@ -285,20 +285,56 @@ const Collect = async (name, collectData = {}) => {
     return false
 }
 
-const unCollect = async (name, uncollectData = {}) => {
+const unCollectProject = async (name, uncollectData = {}) => {
   const item_id = uncollectData.item_id
 
   // 获取 用户id
   const sqlId = `select id from user where username='${name}';`
   const res = await exec(sqlId)
 
-  const sql = `delete from freelancer_collection where id='${res[0].id}' and item_id='${item_id}';`
+  const sql = `delete from freelancer_collection where id='${res[0].id}' and item_id='${item_id}' and type='project';`
   const updateData = await exec(sql)
 
   if (updateData.affectedRows > 0) {
       return true
   }
   return false
+}
+
+const CollectCompetition = async (name, collectData = {}) => {
+  const item_id = collectData.item_id
+
+  // 获取 用户id
+  const sqlId = `select id from user where username='${name}';`
+  const res = await exec(sqlId)
+
+  // 获取 item_title
+  const sqlItem_title = `select title from competition where id='${item_id}';`
+  const item_title = await exec(sqlItem_title)
+
+  const sql = `insert into freelancer_collection (id,item_id,item_title,type) values ('${res[0].id}','${item_id}','${item_title[0].title}','competition');`
+  const updateData = await exec(sql)
+
+  if (updateData.affectedRows > 0) {
+      return true
+  }
+  return false
+}
+
+const unCollectCompetition = async (name, uncollectData = {}) => {
+const item_id = uncollectData.item_id
+
+// 获取 用户id
+const sqlId = `select id from user where username='${name}';`
+const res = await exec(sqlId)
+
+const sql = `delete from freelancer_collection where id='${res[0].id}' and item_id='${item_id}' and type='competition';`
+const updateData = await exec(sql)
+
+if (updateData.affectedRows > 0) {
+    return true
+}
+return false
 }
 
 const getHourlyProject = async (name, projectData = {}) => {
@@ -309,6 +345,7 @@ const getHourlyProject = async (name, projectData = {}) => {
     const note = projectData.note
     const projectId = projectData.projectId
     const top = projectData.top
+
     // 获取 用户id
     const sqlId = `select id from user where username='${name}';`
     const res1 = await exec(sqlId)
@@ -337,6 +374,14 @@ const getHourlyProject = async (name, projectData = {}) => {
     const updateData = await exec(sql)
 
     if (updateData.affectedRows > 0) {
+
+        const resNum = await exec(`select bidNum,reward from project where id='${projectId}';`)
+        // 增加项目竞标数量
+        const bidNum = resNum[0].bidNum + 1;
+        // 计算平均报价
+        const rewardNum = (resNum[0].reward * (bidNum-1) + reward)/bidNum
+        await exec(`update project set bidNum='${bidNum}',reward='${rewardNum}' where id='${projectId}';`)
+
         return true
     }
     return false
@@ -377,6 +422,13 @@ const getFixedProject = async (name, projectData = {}) => {
     const updateData = await exec(sql)
 
       if (updateData.affectedRows > 0) {
+          const resNum = await exec(`select bidNum,reward from project where id='${projectId}';`)
+          // 增加项目竞标数量
+          const bidNum = resNum[0].bidNum + 1;
+          // 计算平均报价
+          const rewardNum = (resNum[0].reward * (bidNum-1) + reward)/bidNum
+          await exec(`update project set bidNum='${bidNum}',reward='${rewardNum}' where id='${projectId}';`)
+
           return true
       }
       return false
@@ -417,6 +469,9 @@ sql = `insert into competition_freelancer
   const updateData = await exec(sql)
 
     if (updateData.affectedRows > 0) {
+      const resNum = await exec(`select bidNum from competition where id='${competitionId}';`)
+      const bidNum = resNum[0].bidNum + 1;
+      await exec(`update competition set bidNum='${bidNum}' where id='${competitionId}';`)
         return true
     }
     return false
@@ -435,8 +490,14 @@ const getSkills = async (id) => {
   return skills
 }
 
-const getCollection = async (id) => {
-  sql = `select * from project where id in (select item_id from freelancer_collection where id='${id}');`
+const getCollectionProject = async (id) => {
+  sql = `select * from project where id in (select item_id from freelancer_collection where id='${id}' and type='project');`
+  const res = await exec(sql)
+  return res
+}
+
+const getCollectionCompetition = async (id) => {
+  sql = `select * from competition where id in (select item_id from freelancer_collection where id='${id}' and type='competition');`
   const res = await exec(sql)
   return res
 }
@@ -471,12 +532,49 @@ const getProjects = async (id) => {
   return res
 }
 
+const getProjects1 = async (id) => {
+  sql = `select * from project_freelancer where freelancerId='${id}' and steps<>2 and steps<>3;`
+  const res = await exec(sql)
+  return res
+}
+const getProjects2 = async (id) => {
+  sql = `select * from project_freelancer where freelancerId='${id}' and steps=2;`
+  const res = await exec(sql)
+  return res
+}
+const getProjects3 = async (id) => {
+  sql = `select * from project_freelancer where freelancerId='${id}' and steps=3;`
+  const res = await exec(sql)
+  return res
+}
+
+const getTopProjects = async (id) => {
+  sql = `select * from project_freelancer where freelancerId='${id}' limit 4;`
+  const res = await exec(sql)
+  return res
+}
+
 const getCompetitions = async (id) => {
   sql = `select * from competition_freelancer where freelancerId='${id}';`
   const res = await exec(sql)
   return res
 }
 
+const getCompetitions1 = async (id) => {
+  sql = `select * from competition_freelancer where freelancerId='${id}' and steps=1;`
+  const res = await exec(sql)
+  return res
+}
+const getCompetitions2 = async (id) => {
+  sql = `select * from competition_freelancer where freelancerId='${id}' and steps<>1 and steps<>3;`
+  const res = await exec(sql)
+  return res
+}
+const getCompetitions3 = async (id) => {
+  sql = `select * from competition_freelancer where freelancerId='${id}' and steps=3;`
+  const res = await exec(sql)
+  return res
+}
 
 
 class Freelancer {
@@ -490,9 +588,18 @@ class Freelancer {
     ctx.body = new SuccessModel(result)
   }
 
-  // 获取freelancer详情
+  // 获取freelancer详情(query有name属性，结果为name的详情，否则默认取session)
   async getdetail(ctx) {
-    const result = await getDetail(ctx.query.name)
+    // const result = await getDetail(ctx.session.username)
+    // const result = await getDetail(ctx.request.body.username)
+    let result
+    if (ctx.query.name) {
+      result = await getDetail(ctx.query.name)
+    }
+    else {
+      result = await getDetail(ctx.session.username)
+    }
+    
     ctx.body = new SuccessModel(result)
   }
 
@@ -565,9 +672,9 @@ class Freelancer {
   }
 
   // 收藏项目
-  async collect(ctx) {
+  async collectproject(ctx) {
     const name = ctx.session.username // 本人更新
-    const val = await Collect(name, ctx.request.body)
+    const val = await CollectProject(name, ctx.request.body)
     if (val) {
       ctx.body = new SuccessModel()
     } else {
@@ -575,10 +682,32 @@ class Freelancer {
     }
   }
 
-  // 取消收藏
-  async uncollect(ctx) {
+  // 取消收藏项目
+  async uncollectproject(ctx) {
     const name = ctx.session.username // 本人更新
-    const val = await unCollect(name, ctx.request.body)
+    const val = await unCollectProject(name, ctx.request.body)
+    if (val) {
+      ctx.body = new SuccessModel()
+    } else {
+      ctx.body = new ErrorModel('取消收藏失败')
+    }
+  }
+
+   // 收藏竞赛
+   async collectcompetition(ctx) {
+    const name = ctx.session.username // 本人更新
+    const val = await CollectCompetition(name, ctx.request.body)
+    if (val) {
+      ctx.body = new SuccessModel()
+    } else {
+      ctx.body = new ErrorModel('收藏失败')
+    }
+  }
+
+  // 取消收藏竞赛
+  async uncollectcompetition(ctx) {
+    const name = ctx.session.username // 本人更新
+    const val = await unCollectCompetition(name, ctx.request.body)
     if (val) {
       ctx.body = new SuccessModel()
     } else {
@@ -650,14 +779,27 @@ class Freelancer {
 
   // 查看 skills
   async getskills(ctx) {
-    const result = await getSkills(ctx.session.id) // 本人
+    let result
+    if (ctx.query.id) {
+        result = await getSkills(ctx.query.id) // 本人
+    }
+    else {
+        result = await getSkills(ctx.session.id) // 本人
+    }
+    
     // const result = await getSkills(ctx.query.id)
     ctx.body = new SuccessModel(result)
   }
 
   // 查看 收藏的项目
-  async getcollection(ctx) {
-    const result = await getCollection(ctx.session.id) // 本人
+  async getcollectionproject(ctx) {
+    const result = await getCollectionProject(ctx.session.id) // 本人
+    // const result = await getCollection(ctx.query.id)
+    ctx.body = new SuccessModel(result)
+  }
+
+  async getcollectioncompetition(ctx) {
+    const result = await getCollectionCompetition(ctx.session.id) // 本人
     // const result = await getCollection(ctx.query.id)
     ctx.body = new SuccessModel(result)
   }
@@ -696,10 +838,49 @@ class Freelancer {
     // const result = await getCollection(ctx.query.id)
     ctx.body = new SuccessModel(result)
   }
+  // 正在竞标
+  async getprojects1(ctx) {
+    const result = await getProjects1(ctx.session.id) // 本人
+    ctx.body = new SuccessModel(result)
+  }
+  // 进行中
+  async getprojects2(ctx) {
+    const result = await getProjects2(ctx.session.id) // 本人
+    ctx.body = new SuccessModel(result)
+  }
+  // 过去
+  async getprojects3(ctx) {
+    const result = await getProjects3(ctx.session.id) // 本人
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看最近的项目
+  async gettopprojects(ctx) {
+    const result = await getTopProjects(ctx.session.id) // 本人
+    // const result = await getCollection(ctx.query.id)
+    // console.log(result)
+    ctx.body = new SuccessModel(result)
+  }
+
   // 查看 竞标的竞赛
   async getcompetitions(ctx) {
     const result = await getCompetitions(ctx.session.id) // 本人
     // const result = await getCollection(ctx.query.id)
+    ctx.body = new SuccessModel(result)
+  }
+  // 进行中
+  async getcompetitions1(ctx) {
+    const result = await getCompetitions1(ctx.session.id) // 本人
+    ctx.body = new SuccessModel(result)
+  }
+  // 已悬赏
+  async getcompetitions2(ctx) {
+    const result = await getCompetitions2(ctx.session.id) // 本人
+    ctx.body = new SuccessModel(result)
+  }
+  // 过去
+  async getcompetitions3(ctx) {
+    const result = await getCompetitions3(ctx.session.id) // 本人
     ctx.body = new SuccessModel(result)
   }
 
