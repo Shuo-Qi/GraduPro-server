@@ -123,15 +123,15 @@ const getCompetitionInfo = async (competitionId,freelancerName) => {
   return rows[0]
 }
 
-const getCompetition = async (employer, keyword, order,status,succFreelancer) => {
+const getCompetition = async (employer, title, order,status,succFreelancer) => {
   let sql = `select * from competition where 1=1 `
   // 查某个雇主的竞赛
   if (employer) {
       sql += `and employer='${employer}' `
   }
   // 搜索关键字匹配title
-  if (keyword) {
-    sql += `and title like '%${keyword}%' `
+  if (title) {
+    sql += `and title='${title}' `
   }
   // 状态
   if (status) {
@@ -156,15 +156,15 @@ const getCompetition = async (employer, keyword, order,status,succFreelancer) =>
   return await exec(sql)
 }
 
-const getProject = async (employer, keyword, order,status,succFreelancer) => {
+const getProject = async (employer, title, order,status,succFreelancer) => {
   let sql = `select * from project where 1=1 `
   // 查某个雇主的项目
   if (employer) {
       sql += `and employer='${employer}' `
   }
-  // 搜索关键字匹配title
-  if (keyword) {
-    sql += `and title like '%${keyword}%' `
+  // title
+  if (title) {
+    sql += `and title='${title}' `
   }
   // 状态
   if (status) {
@@ -269,24 +269,22 @@ class Employer {
   // employer本人获取competition列表
   async getcompetition(ctx) {
     const query = ctx.query
-    let employer = query.employer || ''
-    const keyword = query.keyword || ''
+    const title = query.title || ''
     const order = query.order || ''
     const status = query.status || ''
     const succFreelancer = query.succFreelancer || ''
-    const result = await getCompetition(ctx.session.username, keyword, order,status,succFreelancer)
+    const result = await getCompetition(ctx.session.username, title, order,status,succFreelancer)
     ctx.body = new SuccessModel(result)
   }
 
   // employer本人获取project列表
   async getproject(ctx) {
     const query = ctx.query
-    let employer = query.employer || ''
-    const keyword = query.keyword || ''
+    const title = query.title || ''
     const order = query.order || ''
     const status = query.status || ''
     const succFreelancer = query.succFreelancer || ''
-    const result = await getProject(ctx.session.username, keyword, order,status,succFreelancer)
+    const result = await getProject(ctx.session.username, title, order,status,succFreelancer)
     ctx.body = new SuccessModel(result)
   }
 }

@@ -234,9 +234,16 @@ class User {
       }
     }
 
-    // 获取个人详情
+    // 获取user详情(query有name属性，结果为name的详情，否则默认取session)
     async getdetail(ctx) {
-      const result = await getDetail(ctx.session.username)
+      let result
+      if(ctx.query.name) {
+        result = await getDetail(ctx.query.name)
+      }
+      else {
+        result = await getDetail(ctx.session.username)
+      }
+
       // console.log(ctx.session.username)
       // console.log(result)
       ctx.body = new SuccessModel(result)

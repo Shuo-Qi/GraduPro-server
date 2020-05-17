@@ -806,28 +806,56 @@ class Freelancer {
 
   // 查看 作品集
   async getworkset(ctx) {
-    const result = await getWorkset(ctx.session.id) // 本人
+    let result
+    if (ctx.query.id) {
+      result = await getWorkset(ctx.query.id)
+    }
+    else {
+      result = await getWorkset(ctx.session.id)
+    }
+    // const result = await getWorkset(ctx.session.id) // 本人
     // const result = await getCollection(ctx.query.id)
     ctx.body = new SuccessModel(result)
   }
 
   // 查看 工作经历
   async getworks(ctx) {
-    const result = await getWorks(ctx.session.id) // 本人
+    let result
+    if (ctx.query.id) {
+      result = await getWorks(ctx.query.id)
+    }
+    else {
+      result = await getWorks(ctx.session.id)
+    }
+    // const result = await getWorks(ctx.session.id) // 本人
     // const result = await getCollection(ctx.query.id)
     ctx.body = new SuccessModel(result)
   }
 
   // 查看 教育经历
   async geteducation(ctx) {
-    const result = await getEducation(ctx.session.id) // 本人
+    let result
+    if (ctx.query.id) {
+      result = await getEducation(ctx.query.id)
+    }
+    else {
+      result = await getEducation(ctx.session.id)
+    }
+    // const result = await getEducation(ctx.session.id) // 本人
     // const result = await getCollection(ctx.query.id)
     ctx.body = new SuccessModel(result)
   }
 
   // 查看 获奖经历
   async getreward(ctx) {
-    const result = await getReward(ctx.session.id) // 本人
+    let result
+    if (ctx.query.id) {
+      result = await getReward(ctx.query.id)
+    }
+    else {
+      result = await getReward(ctx.session.id)
+    }
+    // const result = await getReward(ctx.session.id) // 本人
     // const result = await getCollection(ctx.query.id)
     ctx.body = new SuccessModel(result)
   }
