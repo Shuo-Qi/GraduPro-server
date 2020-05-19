@@ -108,6 +108,11 @@ const getTags = async (id) => {
   
   return tags
 }
+
+const getBid = async (title) => {
+  sql = `select * from project_freelancer where projectTitle='${title}'`
+  return await exec(sql)
+}
     
 class Project {
 
@@ -224,6 +229,12 @@ class Project {
   // 查看employer过去的项目（status=1或2或3）
   async getprojectpast(ctx) {
     const result = await getProjectPast(ctx.session.username)
+    ctx.body = new SuccessModel(result)
+  }
+
+  // 查看项目竞标
+  async getbid(ctx) {
+    const result = await getBid(ctx.query.title)
     ctx.body = new SuccessModel(result)
   }
 

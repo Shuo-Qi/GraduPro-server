@@ -65,16 +65,18 @@ const updateEmployer = async (name, freelancerData = {}) => {
     return false
 }
 
-const offerProject = async (projectId, freelancerId, employer) => {
-    // 获取 succFreelancer的姓名
-    const sqlFreelancer = `select name from freelancer where id='${freelancerId}';`
-    const name = await exec(sqlFreelancer)
+const offerProject = async (projectTitle, freelancerName, employer) => {
+    // // 获取 succFreelancer的姓名
+    // const sqlFreelancer = `select name from freelancer where id='${freelancerId}';`
+    // const name = await exec(sqlFreelancer)
 
     // 验证是否此人竞标了此项目
-    const verify = await exec(`select * from project_freelancer where projectId='${projectId}' and freelancerId='${freelancerId}';`)
+    const verify = await exec(`select * from project_freelancer where projectTitle='${projectTitle}' and freelancerName='${freelancerName}';`)
 
     if (verify.length != 0) {
-        const sql = `update project set succFreelancer='${name[0].name}' where id='${projectId}' and employer='${employer}';`
+        // const sql = `update project set succFreelancer='${freelancerName}' where title='${projectTitle}' and employer='${employer}';`
+        // 等待freelancer接受
+        const sql = `update project_freelancer set steps=12 where projectTitle='${projectTitle}' and employer='${employer}' and freelancerName='${freelancerName}';`
         const updateData = await exec(sql)
 
         if (updateData.affectedRows > 0) {
@@ -229,7 +231,7 @@ class Employer {
   // 悬赏 project
   async offerproject(ctx) {
     const name = ctx.session.username // 本人
-    const val = await offerProject(ctx.query.id,ctx.request.body.freelancerId,name)
+    const val = await offerProject(ctx.query.projectTitle,ctx.request.body.freelancerName,name)
     if (val) {
       ctx.body = new SuccessModel()
     } else {

@@ -11,5 +11,5 @@ router.post('/delproject', loginCheck, project.delproject);
 router.get('/getskills', loginCheck, project.getskills);
 router.get('/gettags', loginCheck, project.gettags);
 router.get('/getprojectpast', loginCheck, project.getprojectpast);
-
+router.get('/getbid', loginCheck, project.getbid);
 module.exports = router;
