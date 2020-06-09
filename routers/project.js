@@ -12,4 +12,5 @@ router.get('/getskills', loginCheck, project.getskills);
 router.get('/gettags', loginCheck, project.gettags);
 router.get('/getprojectpast', loginCheck, project.getprojectpast);
 router.get('/getbid', loginCheck, project.getbid);
+router.post('/level', project.level);
 module.exports = router;

@@ -9,6 +9,7 @@ router.post('/updateemployer', loginCheck, employer.updateemployer);
 router.post('/offerproject', loginCheck, employer.offerproject);
 router.post('/offercompetition', loginCheck, employer.offercompetition);
 router.get('/gettopprojects', loginCheck, employer.gettopprojects);
+router.get('/gettopcompetitions', loginCheck, employer.gettopcompetitions);
 router.get('/getprojectinfo', loginCheck, employer.getprojectinfo);
 router.get('/getcompetitioninfo', loginCheck, employer.getcompetitioninfo);
 router.get('/getcompetition', loginCheck, employer.getcompetition);

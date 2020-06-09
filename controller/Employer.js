@@ -88,16 +88,18 @@ const offerProject = async (projectTitle, freelancerName, employer) => {
     
 }
 
-const offerCompetition = async (competitionId, freelancerId, employer) => {
-    // 获取 succFreelancer的姓名
-    const sqlFreelancer = `select name from freelancer where id='${freelancerId}';`
-    const name = await exec(sqlFreelancer)
+const offerCompetition = async (competitionTitle, freelancerName, employer) => {
+    // // 获取 succFreelancer的姓名
+    // const sqlFreelancer = `select name from freelancer where id='${freelancerId}';`
+    // const name = await exec(sqlFreelancer)
 
     // 验证是否此人竞标了此项目
-    const verify = await exec(`select * from competition_freelancer where competitionId='${competitionId}' and freelancerId='${freelancerId}';`)
+    const verify = await exec(`select * from competition_freelancer where competitionTitle='${competitionTitle}' and freelancerName='${freelancerName}';`)
 
     if (verify.length != 0) {
-        const sql = `update competition set succFreelancer='${name[0].name}',succWork='${verify[0].NO}' where id='${competitionId}' and employer='${employer}';`
+        const sqlpre = `update competition_freelancer set steps=21 where competitionTitle='${competitionTitle}' and employer='${employer}' and freelancerName='${freelancerName}';`
+        const sql = `update competition set succFreelancer='${freelancerName}',succWork='${verify[0].NO}' where title='${competitionTitle}' and employer='${employer}';`
+        const  datapre = await exec(sqlpre)
         const updateData = await exec(sql)
         if (updateData.affectedRows > 0) {
             return true
@@ -109,6 +111,12 @@ const offerCompetition = async (competitionId, freelancerId, employer) => {
 
 const getTopProjects = async (name) => {
   sql = `select * from project where employer='${name}' limit 4;`
+  const res = await exec(sql)
+  return res
+}
+
+const getTopCompetitions = async (name) => {
+  sql = `select * from competition where employer='${name}' limit 4;`
   const res = await exec(sql)
   return res
 }
@@ -253,6 +261,11 @@ class Employer {
    // 查看最近的项目
    async gettopprojects(ctx) {
     const result = await getTopProjects(ctx.session.username) // 本人
+    ctx.body = new SuccessModel(result)
+  }
+
+  async gettopcompetitions(ctx) {
+    const result = await getTopCompetitions(ctx.session.username) // 本人
     ctx.body = new SuccessModel(result)
   }
 

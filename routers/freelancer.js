@@ -30,6 +30,7 @@ router.get('/getprojects1', loginCheck, freelancer.getprojects1);
 router.get('/getprojects2', loginCheck, freelancer.getprojects2);
 router.get('/getprojects3', loginCheck, freelancer.getprojects3);
 router.get('/gettopprojects', loginCheck, freelancer.gettopprojects);
+router.get('/gettopcompetitions', loginCheck, freelancer.gettopcompetitions);
 router.get('/getcompetitions', loginCheck, freelancer.getcompetitions);
 router.get('/getcompetitions1', loginCheck, freelancer.getcompetitions1);
 router.get('/getcompetitions2', loginCheck, freelancer.getcompetitions2);

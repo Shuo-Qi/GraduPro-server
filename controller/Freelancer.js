@@ -80,7 +80,8 @@ const updateSkills = async (name,skills) => {
     // 获取 用户id
     const sqlId = `select id from user where username='${name}';`
     const res = await exec(sqlId)
-
+    // 删除用户所有skills
+    const res0 = await exec(`delete from freelancer_skills where id='${res[0].id}';`)
     // 插入 freelancer_skills 表
     let sql = `insert into freelancer_skills (id,skill) values `
     if (skills.includes('HTML')) {
@@ -130,7 +131,8 @@ const updateWorkset = async (name, worksetData = [{},{},{},{}]) => {
     // 获取 用户id
     const sqlId = `select id from user where username='${name}';`
     const res = await exec(sqlId)
-
+    // 删除
+    const res0 = await exec(`delete from freelancer_workset where id='${res[0].id}';`)
     // 插入freelancer_workset表
     let sql = `insert into freelancer_workset (id,type,title,skills,src) values `
     if (data1) {
@@ -166,7 +168,8 @@ const updateWorks = async (name, worksData = [{},{},{},{}]) => {
   // 获取 用户id
   const sqlId = `select id from user where username='${name}';`
   const res = await exec(sqlId)
-
+  // 删除
+  const res0 = await exec(`delete from freelancer_works where id='${res[0].id}';`)
   // 插入freelancer_works表
   let sql = `insert into freelancer_works (id,position,company,timeStart,timeEnd,description) values `
   if (data1) {
@@ -202,7 +205,8 @@ const updateEducation = async (name, educationData = [{},{},{},{}]) => {
   // 获取 用户id
   const sqlId = `select id from user where username='${name}';`
   const res = await exec(sqlId)
-
+  // 删除
+  const res0 = await exec(`delete from freelancer_education where id='${res[0].id}';`)
   // 插入freelancer_education表
   let sql = `insert into freelancer_education (id,degree,college,timeStart,timeEnd) values `
   if (data1) {
@@ -238,7 +242,8 @@ const updateReward = async (name, rewardData = [{},{},{},{}]) => {
   // 获取 用户id
   const sqlId = `select id from user where username='${name}';`
   const res = await exec(sqlId)
-
+  // 删除
+  const res0 = await exec(`delete from freelancer_reward where id='${res[0].id}';`)
   // 插入freelancer_reward表
   let sql = `insert into freelancer_reward (id,competition,organization,time,description) values `
   if (data1) {
@@ -364,12 +369,12 @@ const getHourlyProject = async (name, projectData = {}) => {
     //格式化后的时间
     timeFormat = year + month + day
 
-    // 计算 deposite
-    const deposite = 0.5 * hours
+    // 计算 deposit = 每周薪水*10% + 0.5*小时数（项目费）
+    const deposit = (0.1 * reward + 0.5)  * hours
 
     sql = `insert into project_freelancer
- (freelancerName,freelancerId,projectTitle,projectId,time,employer,reward,deadline,note,deposite,top) values
- ('${name}','${res1[0].id}','${res2[0].title}','${projectId}','${timeFormat}','${res2[0].employer}','${reward}','${deadline}','${note}','${deposite}','${top}');`
+ (freelancerName,freelancerId,projectTitle,projectId,time,employer,reward,deadline,note,deposit,top) values
+ ('${name}','${res1[0].id}','${res2[0].title}','${projectId}','${timeFormat}','${res2[0].employer}','${reward}','${deadline}','${note}','${deposit}','${top}');`
     
     const updateData = await exec(sql)
 
@@ -412,12 +417,12 @@ const getFixedProject = async (name, projectData = {}) => {
     //格式化后的时间
     timeFormat = year + month + day
 
-    // 计算 deposite
-    const deposite = reward * 0.1
+    // 计算 deposit
+    const deposit = reward * 0.1
 
   sql = `insert into project_freelancer
- (freelancerName,freelancerId,projectTitle,projectId,time,employer,reward,deadline,note,deposite,top) values
- ('${name}','${res1[0].id}','${res2[0].title}','${projectId}','${timeFormat}','${res2[0].employer}','${reward}','${deadline}','${note}','${deposite}','${top}');`
+ (freelancerName,freelancerId,projectTitle,projectId,time,employer,reward,deadline,note,deposit,top) values
+ ('${name}','${res1[0].id}','${res2[0].title}','${projectId}','${timeFormat}','${res2[0].employer}','${reward}','${deadline}','${note}','${deposit}','${top}');`
 
     const updateData = await exec(sql)
 
@@ -550,6 +555,12 @@ const getProjects3 = async (id) => {
 
 const getTopProjects = async (id) => {
   sql = `select * from project_freelancer where freelancerId='${id}' limit 4;`
+  const res = await exec(sql)
+  return res
+}
+
+const getTopCompetitions = async (id) => {
+  sql = `select * from competition_freelancer where freelancerId='${id}' limit 4;`
   const res = await exec(sql)
   return res
 }
@@ -885,6 +896,13 @@ class Freelancer {
   // 查看最近的项目
   async gettopprojects(ctx) {
     const result = await getTopProjects(ctx.session.id) // 本人
+    // const result = await getCollection(ctx.query.id)
+    // console.log(result)
+    ctx.body = new SuccessModel(result)
+  }
+
+  async gettopcompetitions(ctx) {
+    const result = await getTopCompetitions(ctx.session.id) // 本人
     // const result = await getCollection(ctx.query.id)
     // console.log(result)
     ctx.body = new SuccessModel(result)

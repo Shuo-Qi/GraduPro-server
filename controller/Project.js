@@ -59,15 +59,54 @@ const newProject = async (Title, Description, Employer, Deadline, RewardType, Bu
     return insertData
 }
 
-const updateProject = async (id, projectData = {}, employer) => {
-    const title = xss(projectData.title)
+const updateProject = async (title, projectData = {}, employer) => {
+    // const title = xss(projectData.title)
     const description = xss(projectData.description)
+    const skills = xss(projectData.skills)
+    // 获取 项目id
+    const sqlId = `select id from project where title='${title}';`
+    const res = await exec(sqlId)
+    // 删除所有skills
+    const resDel = await exec(`delete from project_skills where id='${res[0].id}';`)
+    // 插入 project_skills 表
+    let sql = `insert into project_skills (id,skill) values `
+    if (skills.includes('HTML')) {
+      sql += `('${res[0].id}','HTML'),`
+    }
+    if (skills.includes('CSS')) {
+      sql += `('${res[0].id}','CSS'),`
+    }
+    if (skills.includes('网页设计')) {
+      sql += `('${res[0].id}','网页设计'),`
+    }
+    if (skills.includes('Vue')) {
+      sql += `('${res[0].id}','Vue'),`
+    }
+    if (skills.includes('NodeJS')) {
+      sql += `('${res[0].id}','NodeJS'),`
+    }
+    if (skills.includes('Java')) {
+      sql += `('${res[0].id}','Java'),`
+    }
+    if (skills.includes('C++')) {
+      sql += `('${res[0].id}','C++'),`
+    }
+    if (skills.includes('JavaScript')) {
+      sql += `('${res[0].id}','JavaScript'),`
+    }
+    if (skills.includes('TypeScript')) {
+      sql += `('${res[0].id}','TypeScript'),`
+    }
 
-    const sql = `
-        update project set title='${title}', description='${description}' where id='${id}' and employer='${employer}';
+    // 删除最后的“,”
+    sql = sql.substr(0, sql.length - 1)
+    const updateSkills = await exec(sql)
+
+    const sql2 = `
+        update project set description='${description}' where title='${title}' and employer='${employer}';
     `
 
-    const updateData = await exec(sql)
+    const updateData = await exec(sql2)
     if (updateData.affectedRows > 0) {
         return true
     }
@@ -109,9 +148,45 @@ const getTags = async (id) => {
   return tags
 }
 
-const getBid = async (title) => {
+const getBid = async (title, freelancer) => {
   sql = `select * from project_freelancer where projectTitle='${title}'`
+
+  if (freelancer) {
+    sql += `and freelancerName='${freelancer}';`
+  }
   return await exec(sql)
+}
+
+const Level = async (title, tags) => {
+    // 获取 id
+    const sqlId = `select id from project where title='${title}';`
+    const res = await exec(sqlId)
+    // 插入project_tags表
+    if (tags.includes('招聘专家')) {
+      exec(`insert into project_tags (id,tag) values ('${res[0].id}', '招聘专家')`)
+    }
+    if (tags.includes('加封')) {
+      exec(`insert into project_tags (id,tag) values ('${res[0].id}', '加封')`)
+    }
+    if (tags.includes('加精')) {
+      exec(`insert into project_tags (id,tag) values ('${res[0].id}', '加精')`)
+    }
+    if (tags.includes('延长')) {
+      exec(`insert into project_tags (id,tag) values ('${res[0].id}', '延长')`)
+    }
+    if (tags.includes('全职')) {
+      exec(`insert into project_tags (id,tag) values ('${res[0].id}', '全职')`)
+    }
+    if (tags.includes('加密')) {
+      exec(`insert into project_tags (id,tag) values ('${res[0].id}', '加密')`)
+    }
+    if (tags.includes('保密协议')) {
+      exec(`insert into project_tags (id,tag) values ('${res[0].id}', '保密协议')`)
+    }
+    if (tags.includes('IP协议')) {
+      exec(`insert into project_tags (id,tag) values ('${res[0].id}', 'IP协议')`)
+    }
+
 }
     
 class Project {
@@ -191,10 +266,10 @@ class Project {
     ctx.body = new SuccessModel(result)
   }
 
-  // 更新project（必须有title和description两个参数，id在请求url中写）
+  // 更新project的skills和description（必须有skills和description两个参数，title在请求url中写）
   async updateproject(ctx) {
     const employer = ctx.session.username
-    const val = await updateProject(ctx.query.id, ctx.request.body,employer)
+    const val = await updateProject(ctx.query.title, ctx.request.body,employer)
     if (val) {
       ctx.body = new SuccessModel()
     } else {
@@ -234,10 +309,18 @@ class Project {
 
   // 查看项目竞标
   async getbid(ctx) {
-    const result = await getBid(ctx.query.title)
+    const title = ctx.query.title || ''
+    const freelancer = ctx.query.freelancer || ''
+    const result = await getBid(title, freelancer)
     ctx.body = new SuccessModel(result)
   }
 
+  // 升级
+  async level(ctx) {
+    const val = await Level(ctx.query.title, ctx.request.body.tags)
+    ctx.body = new SuccessModel()
+    
+  }
 }
 
 module.exports = new Project();
